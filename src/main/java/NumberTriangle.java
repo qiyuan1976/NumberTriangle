@@ -88,8 +88,21 @@ public class NumberTriangle {
      *
      */
     public int retrieve(String path) {
-        // TODO implement this method
-        return -1;
+        NumberTriangle curr = this;
+        for (int i = 0; i < path.length(); i++) {
+            char ch = path.charAt(i);
+            if (ch == 'l') {
+                curr = curr.left;
+            } else if (ch == 'r') {
+                curr = curr.right;
+            } else {
+                throw new IllegalArgumentException("Invalid char '" + ch + "' at index " + i + " (only 'l' or 'r' allowed)");
+            }
+            if (curr == null) {
+                throw new IllegalStateException("Path goes beyond the triangle at index " + i);
+            }
+        }
+        return curr.root;
     }
 
     /** Read in the NumberTriangle structure from a file.
