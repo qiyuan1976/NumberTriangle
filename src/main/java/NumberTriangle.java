@@ -104,30 +104,59 @@ public class NumberTriangle {
      * @throws IOException may naturally occur if an issue reading the file occurs
      */
     public static NumberTriangle loadTriangle(String fname) throws IOException {
-        // open the file and get a BufferedReader object whose methods
-        // are more convenient to work with when reading the file contents.
         InputStream inputStream = NumberTriangle.class.getClassLoader().getResourceAsStream(fname);
+        if (inputStream == null) {
+            throw new FileNotFoundException("Resource not found on classpath: " + fname);
+        }
+
         BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+        java.util.List<java.util.List<Integer>> values = new java.util.ArrayList<>();
+        try {
+            String line = br.readLine();
+            while (line != null) {
+                String trimmed = line.trim();
+                if (!trimmed.isEmpty()) {
+                    String[] toks = trimmed.split("\\s+");
+                    java.util.List<Integer> row = new java.util.ArrayList<>(toks.length);
+                    for (String t : toks) {
+                        row.add(Integer.parseInt(t));
+                    }
+                    values.add(row);
+                }
+                line = br.readLine();
+            }
+        } finally {
+            br.close();
+        }
 
+        if (values.isEmpty()) {
+            throw new IOException("No rows found in " + fname);
+        }
 
-        // TODO define any variables that you want to use to store things
-
-        // will need to return the top of the NumberTriangle,
-        // so might want a variable for that.
+        // Build the triangle nodes row-by-row, linking parents to children.
+        java.util.List<NumberTriangle> prevRow = null;
         NumberTriangle top = null;
 
-        String line = br.readLine();
-        while (line != null) {
+        for (int r = 0; r < values.size(); r++) {
+            java.util.List<Integer> rowVals = values.get(r);
+            java.util.List<NumberTriangle> currRow = new java.util.ArrayList<>(rowVals.size());
+            for (int c = 0; c < rowVals.size(); c++) {
+                currRow.add(new NumberTriangle(rowVals.get(c)));
+            }
 
-            // remove when done; this line is included so running starter code prints the contents of the file
-            System.out.println(line);
-
-            // TODO process the line
-
-            //read the next line
-            line = br.readLine();
+            if (r == 0) {
+                top = currRow.get(0);
+            } else {
+                // Link each parent in prevRow to two children in currRow
+                for (int p = 0; p < prevRow.size(); p++) {
+                    NumberTriangle parent = prevRow.get(p);
+                    parent.setLeft(currRow.get(p));
+                    parent.setRight(currRow.get(p + 1));
+                }
+            }
+            prevRow = currRow;
         }
-        br.close();
+
         return top;
     }
 
